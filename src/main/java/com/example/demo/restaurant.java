@@ -1,29 +1,42 @@
 package com.example.demo;
 
-public class restaurant {
+public class Restaurant {
 
-	 int business_id;
-	 int post_code;
-	 float stars;
+	 int id;
+	 String business_id;
+	 String name;
+	 String postal_code;
+	 double stars;
 	 int review_count;
 	 String category;
-	 
-	public int getBusiness_id() {
+	public int getId() {
+		return id;
+	}
+	public void setId(int id) {
+		this.id = id;
+	}
+	public String getBusiness_id() {
 		return business_id;
 	}
-	public void setBusiness_id(int business_id) {
+	public void setBusiness_id(String business_id) {
 		this.business_id = business_id;
 	}
-	public int getPost_code() {
-		return post_code;
+	public String getName() {
+		return name;
 	}
-	public void setPost_code(int post_code) {
-		this.post_code = post_code;
+	public void setName(String name) {
+		this.name = name;
 	}
-	public float getStars() {
+	public String getPostal_code() {
+		return postal_code;
+	}
+	public void setPostal_code(String postal_code) {
+		this.postal_code = postal_code;
+	}
+	public double getStars() {
 		return stars;
 	}
-	public void setStars(float stars) {
+	public void setStars(double stars) {
 		this.stars = stars;
 	}
 	public int getReview_count() {
@@ -39,5 +52,6 @@ public class restaurant {
 		this.category = category;
 	}
 	 
+	
 	 
 }

@@ -38,10 +38,4 @@ public class User {
 		this.top_business = top_business;
 	}
 	
-	
-	
-	
-	
-	
-	
 }

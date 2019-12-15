@@ -13,12 +13,10 @@ public class HistoryHandler {
 	Connection connect  = null;
 	Statement statement = null;
 	PreparedStatement preparedStatement = null;
-	//return top 10 restaurant business id and store the top restaurant back to user
-	public List<String> getHistoryByUserId(String userId) throws SQLException {
+	public Connection connectDB() {
 		String url = "jdbc:mysql://localhost:3306/data_mining";
         String user = "root";
         String password = "waq_0145_password&986";
-        ResultSet rst = null;
         try
         {
             Class.forName("com.mysql.jdbc.Driver");
@@ -30,17 +28,25 @@ public class HistoryHandler {
         try {
             connect = DriverManager
                 .getConnection(url, user, password);
-            System.out.println("SQL Connection to database established!");
+            // System.out.println("SQL Connection to database established!");
  
         } catch (SQLException e) {
         	System.out.println(e.getMessage());
             System.out.println("Connection Failed! Check output console");
             
         }
-        
+		return connect;
+	}
+	
+	//return top 10 restaurant business id and store the top restaurant back to user
+	//return business id
+	public List<String> getTopResByUserId(String userId) throws SQLException {
+
+		ResultSet rst = null;
+		connect = connectDB();
         try {
 			statement = connect.createStatement();
-			String sql = "SELECT * FROM history WHERE user_id ="+userId;
+			String sql = "SELECT count(*) as count, business_id FROM history WHERE user_id ='"+userId+"' group by business_id order by count desc;";
 			rst = statement.executeQuery(sql);
 			
 		} catch (SQLException e) {
@@ -48,41 +54,76 @@ public class HistoryHandler {
 			e.printStackTrace();
 		}
         List<String> topList = new ArrayList<>();
-		Map<String,Integer> map = new HashMap<>();//business, times
-		int top = 0;
+		int count = 0;
 		while(rst.next()) {
 			////////
-			String business_id = rst.getString("business_id");
-			map.put(business_id,map.getOrDefault(business_id, 0)+1);
+			if(count>10)break;
+			topList.add(rst.getString("business_id"));
+			count ++;
 		}
-		List<Map.Entry<String, Integer>> list = new ArrayList<Map.Entry<String,Integer>>(map.entrySet());
-		Collections.sort(list,new Comparator<Map.Entry<String, Integer>>(){
-			public int compare(Entry<String,Integer> o1,Entry<String,Integer> o2) {
-				return o1.getValue().compareTo((o2.getValue()-o1.getValue()));
-			}
-		});
-		
-		for(int i=0;i<10;i++) {
-			Map.Entry<String,Integer> temp = list.get(i);
-			topList.add(temp.getKey());
+		//add the user table
+		try {
+			statement = connect.createStatement();
+			String top_business = convertName(topList);
+			String sql = "update user SET top_business='"+top_business+"' where user_id ='"+userId+"';";
+			statement.executeUpdate(sql);
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		
-//		String top_business = convertName(topList);
-//		//insert top_buiness into user
-//		
-//		try {
-//			statement = connect.createStatement();
-//			String insertsql = "insert into user(top_business)"+"values"+top_business;
-//			
-//			rst = statement.executeQuery(insertsql);
-//			
-//		} catch (SQLException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
 		return topList;
-		
-        
+	}
+	
+	//return top 10 restaurant business id and store the top restaurant back to user from test dataset
+	//return business id
+	public List<String> getTestTopResByUserId(String userId) throws SQLException {
+
+		ResultSet rst = null;
+		connect = connectDB();
+        try {
+			statement = connect.createStatement();
+			String sql = "SELECT count(*) as count, business_id FROM history_test WHERE user_id ='"+userId+"' and group by business_id order by count desc;";
+			rst = statement.executeQuery(sql);
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        List<String> topList = new ArrayList<>();
+		int count = 0;
+		while(rst.next()) {
+			////////
+			if(count>10)break;
+			topList.add(rst.getString("business_id"));
+			count ++;
+		}
+		return topList;
+	}
+	
+	public int countVisiedCatory(String category_name, String user_id) {
+		ResultSet rst = null;
+		connect = connectDB();
+		int result =0 ;
+        try {
+			statement = connect.createStatement();
+			Statement statement1 = connect.createStatement();
+			String sql = "SELECT business_id FROM history WHERE user_id ='"+user_id+"';";
+			rst = statement.executeQuery(sql);
+			while(rst.next()) {
+				String category = "SELECT category FROM business WHERE business_id ='"+rst.getString("business_id")+"';";
+				ResultSet rst_category = statement1.executeQuery(category);
+				if(rst_category.next()) {
+					if(rst_category.getString("category").contains("category_name")) {
+						result++;
+					}
+				}
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        return result;
 	}
 	
 	public String convertName(List<String> businessList) {
@@ -91,10 +132,11 @@ public class HistoryHandler {
 			sb.append(business);
 			sb.append(",");
 		}
-		sb.deleteCharAt(sb.length()-1);
 		return sb.toString();
 	}
 	
-
-	
+	public static void main(String[] args) throws SQLException {
+		HistoryHandler handler = new HistoryHandler();
+		System.out.println(handler.getTopResByUserId("UPw5DWs_b-e2JRBS-t37Ag"));
+	}	
 }
